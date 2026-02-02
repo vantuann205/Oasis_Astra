@@ -1,11 +1,10 @@
 {
   "name": "oasis-astra-dapp",
   "version": "1.0.0",
-  "description": "DApp with token minting on Oasis Sapphire Testnet",
+  "description": "Token Creator DApp on Oasis Sapphire Testnet",
   "scripts": {
-    "deploy-metamask": "node deploy-metamask.js",
     "compile": "npx hardhat compile",
-    "deploy": "npx hardhat run scripts/deploy.ts --network sapphire-testnet",
+    "deploy-factory": "npx hardhat run scripts/deploy-factory.ts --network sapphire-testnet",
     "frontend:dev": "cd frontend && npm run dev",
     "frontend:build": "cd frontend && npm run build",
     "clean": "npx hardhat clean"

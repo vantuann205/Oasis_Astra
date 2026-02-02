@@ -1,28 +1,30 @@
-# Astra.Oasis DApp
+# Oasis Token Creator
 
-DApp mint token trên Oasis Sapphire Testnet với MetaMask.
+Token Creator DApp trên Oasis Sapphire Testnet.
 
 ## Tính năng
 
-- **Mint Token**: Mint OAT token với phí 0.001 TEST
+- **Create Token**: Tạo ERC20 token với metadata
 - **MetaMask**: Kết nối MetaMask, auto switch network
-- **Sapphire**: Sử dụng Oasis Sapphire privacy features
-- **Responsive**: Giao diện thân thiện
+- **IPFS Upload**: Upload image và metadata
+- **Factory Pattern**: Deploy contract riêng cho mỗi token
 
 ## Cấu trúc dự án
 
 ```
 Oasis_Astra/
-├── contracts/              # Smart contracts
-│   └── SimpleToken.sol     # ERC20 token với mint
-├── scripts/                # Deploy scripts
-│   └── deploy.ts          # Deploy script
-├── frontend/               # Next.js frontend
-│   ├── app/               # Next.js app directory
-│   ├── components/        # React components
-│   └── abi/              # Contract ABIs
-├── hardhat.config.ts      # Hardhat config
-└── package.json          # Dependencies
+├── contracts/
+│   ├── TokenFactory.sol        # Factory contract
+│   └── TokenPolicyMint.sol     # Token template
+├── scripts/
+│   └── deploy-factory.ts       # Deploy script
+├── frontend/
+│   ├── app/                    # Next.js pages
+│   ├── components/
+│   │   └── CreateToken.tsx     # Main component
+│   └── abi/
+│       └── factoryAbi.ts       # Contract ABIs
+└── hardhat.config.ts
 ```
 
 ## Cài đặt và chạy
@@ -30,37 +32,27 @@ Oasis_Astra/
 ### 1. Cài đặt dependencies
 
 ```bash
-# Root project
 npm install
-
-# Frontend
 cd frontend && npm install
 ```
 
-### 2. Deploy contract (nếu cần)
-
-```bash
-npm run deploy-metamask
-```
-
-### 3. Chạy frontend
+### 2. Chạy frontend
 
 ```bash
 npm run frontend:dev
 ```
 
-## Smart Contract - SimpleToken
+## Smart Contracts
 
-- **Name**: Oasis Astra Token (OAT)
-- **Address**: `0x774372fB7c8D6e484dbc7AE9c0f7771F070C30Db`
-- **Mint Price**: 0.001 TEST per token
+### TokenFactory
+- **Address**: `0xD88489fCd77552fbB57A03dE4Be838dD136d1c40`
 - **Network**: Oasis Sapphire Testnet
+- **Function**: Deploy TokenPolicyMint contracts
 
-### Chức năng
-
-- `mint(uint256 amount)`: Mint token với phí
-- `calculateMintCost(uint256 amount)`: Tính chi phí mint
-- `balanceOf(address)`: Xem số dư token
+### TokenPolicyMint
+- **Template**: ERC20 token với metadata
+- **Supply**: 100% mint cho creator
+- **Features**: Transfer, approve, allowance
 
 ## Mạng Sapphire Testnet
 
@@ -72,19 +64,21 @@ npm run frontend:dev
 ## Scripts
 
 ```bash
-npm run compile        # Compile contracts
-npm run deploy         # Deploy to testnet
-npm run deploy-metamask # Deploy với MetaMask key
-npm run frontend:dev   # Start frontend
-npm run frontend:build # Build frontend
+npm run compile         # Compile contracts
+npm run deploy-factory  # Deploy TokenFactory
+npm run frontend:dev    # Start frontend
+npm run frontend:build  # Build frontend
 ```
 
 ## Cách sử dụng
 
 1. Mở http://localhost:3000
-2. Kết nối MetaMask (tự động switch network)
-3. Nhập số lượng token muốn mint
-4. Confirm transaction
-5. Xem trên explorer
+2. Kết nối MetaMask
+3. Nhập thông tin token (Name, Symbol, Supply, Description, Image)
+4. Nhấn "Create Token"
+5. Confirm transaction
+6. Nhận contract address mới
 
 ---
+
+Made with ❤️ for Oasis Ecosystem
