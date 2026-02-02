@@ -1,4 +1,4 @@
-# Oasis Token Creator
+# ASTRA.OASIS
 
 Token Creator DApp trên Oasis Sapphire Testnet.
 
@@ -80,5 +80,3 @@ npm run frontend:build  # Build frontend
 6. Nhận contract address mới
 
 ---
-
-Made with ❤️ for Oasis Ecosystem
