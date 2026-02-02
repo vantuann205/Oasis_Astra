@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { BrowserProvider, Contract } from 'ethers'
+import { useState, useEffect } from 'react'
+import { BrowserProvider, Contract, parseEther } from 'ethers'
 import { wrapEthereumProvider } from '@oasisprotocol/sapphire-paratime'
 import { FACTORY_ABI, FACTORY_ADDRESS } from '../abi/factoryAbi'
 
@@ -18,9 +18,16 @@ interface TokenForm {
   totalSupply: string
   description: string
   image: File | null
+  pricePerToken: string
 }
 
-export default function CreateToken() {
+interface CreateTokenProps {
+  onTokenCreated?: (tokenAddress: string) => void
+  onConnectionChange?: (connected: boolean, address: string) => void
+  onTokenCreatedSuccess?: () => void
+}
+
+export default function CreateToken({ onTokenCreated, onConnectionChange, onTokenCreatedSuccess }: CreateTokenProps = {}) {
   const [connected, setConnected] = useState(false)
   const [address, setAddress] = useState('')
   const [form, setForm] = useState<TokenForm>({
@@ -28,11 +35,45 @@ export default function CreateToken() {
     symbol: '',
     totalSupply: '',
     description: '',
-    image: null
+    image: null,
+    pricePerToken: ''
   })
   const [loading, setLoading] = useState(false)
   const [txHash, setTxHash] = useState('')
   const [createdToken, setCreatedToken] = useState('')
+  const [createdTokens, setCreatedTokens] = useState<string[]>([])
+
+  // Load created tokens from localStorage on mount and check wallet connection
+  useEffect(() => {
+    const saved = localStorage.getItem('createdTokens')
+    if (saved) {
+      setCreatedTokens(JSON.parse(saved))
+    }
+
+    // Check if wallet is already connected
+    const checkConnection = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+          if (accounts.length > 0) {
+            setConnected(true)
+            setAddress(accounts[0])
+            
+            // Notify parent component
+            if (onConnectionChange) {
+              onConnectionChange(true, accounts[0])
+            }
+            
+            console.log('Auto-detected wallet connection:', accounts[0])
+          }
+        } catch (error) {
+          console.log('No wallet connection detected')
+        }
+      }
+    }
+
+    checkConnection()
+  }, [])
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -83,6 +124,11 @@ export default function CreateToken() {
 
         setAddress(accounts[0])
         setConnected(true)
+        
+        // Notify parent component
+        if (onConnectionChange) {
+          onConnectionChange(true, accounts[0])
+        }
       }
     } catch (error) {
       console.error('Lỗi kết nối:', error)
@@ -107,7 +153,7 @@ export default function CreateToken() {
   }
 
   const createToken = async () => {
-    if (!form.name || !form.symbol || !form.totalSupply) {
+    if (!form.name || !form.symbol || !form.totalSupply || !form.pricePerToken) {
       alert('Vui lòng điền đầy đủ thông tin!')
       return
     }
@@ -125,7 +171,8 @@ export default function CreateToken() {
           symbol: form.symbol,
           description: form.description,
           image: form.image ? await uploadToIPFS(form.image) : '',
-          totalSupply: form.totalSupply
+          totalSupply: form.totalSupply,
+          pricePerToken: form.pricePerToken
         }
         metadataURI = await uploadToIPFS(metadata)
       }
@@ -146,14 +193,24 @@ export default function CreateToken() {
         name: form.name,
         symbol: form.symbol,
         totalSupply: form.totalSupply,
-        metadataURI
+        metadataURI,
+        pricePerToken: form.pricePerToken
       })
+
+      // Validate inputs
+      if (parseFloat(form.totalSupply) <= 0) {
+        throw new Error('Total supply must be greater than 0')
+      }
+      if (parseFloat(form.pricePerToken) <= 0) {
+        throw new Error('Price per token must be greater than 0')
+      }
 
       const tx = await factory.createToken(
         form.name,
         form.symbol,
-        form.totalSupply,
-        metadataURI
+        parseEther(form.totalSupply),
+        metadataURI,
+        parseEther(form.pricePerToken)
       )
 
       setTxHash(tx.hash)
@@ -176,7 +233,23 @@ export default function CreateToken() {
         const parsed = factory.interface.parseLog(event)
         const tokenAddress = parsed?.args[0]
         setCreatedToken(tokenAddress)
-        alert(`✅ Token created successfully!\nAddress: ${tokenAddress}`)
+        
+        // Save to localStorage and state
+        const updatedTokens = [...createdTokens, tokenAddress]
+        setCreatedTokens(updatedTokens)
+        localStorage.setItem('createdTokens', JSON.stringify(updatedTokens))
+        
+        // Call callback if provided
+        if (onTokenCreated) {
+          onTokenCreated(tokenAddress)
+        }
+        
+        // Call success callback to refresh marketplace
+        if (onTokenCreatedSuccess) {
+          onTokenCreatedSuccess()
+        }
+        
+        alert(`✅ Token created successfully!\nAddress: ${tokenAddress}\nPrice: ${form.pricePerToken} TEST per token\nTokens are now available for purchase!`)
       }
 
       // Reset form
@@ -185,7 +258,8 @@ export default function CreateToken() {
         symbol: '',
         totalSupply: '',
         description: '',
-        image: null
+        image: null,
+        pricePerToken: ''
       })
 
     } catch (error: any) {
@@ -194,6 +268,14 @@ export default function CreateToken() {
         alert('❌ Không đủ TEST token để trả phí gas!')
       } else if (error.message.includes('user rejected')) {
         alert('❌ Bạn đã từ chối transaction!')
+      } else if (error.message.includes('Name cannot be empty')) {
+        alert('❌ Tên token không được để trống!')
+      } else if (error.message.includes('Symbol cannot be empty')) {
+        alert('❌ Symbol token không được để trống!')
+      } else if (error.message.includes('Total supply must be greater than 0')) {
+        alert('❌ Total supply phải lớn hơn 0!')
+      } else if (error.message.includes('Price per token must be greater than 0')) {
+        alert('❌ Giá token phải lớn hơn 0!')
       } else {
         alert(`❌ Lỗi tạo token: ${error.message || error}`)
       }
@@ -414,6 +496,42 @@ export default function CreateToken() {
             color: '#374151',
             marginBottom: '0.5rem'
           }}>
+            Price Per Token (TEST) *
+          </label>
+          <input
+            type="number"
+            value={form.pricePerToken}
+            onChange={(e) => setForm({ ...form, pricePerToken: e.target.value })}
+            placeholder="e.g. 0.001"
+            min="0"
+            step="0.000000000000000001"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              outline: 'none',
+              fontSize: '1rem'
+            }}
+          />
+          <p className="text-xs text-gray-500 mt-1" style={{
+            fontSize: '0.75rem',
+            color: '#6b7280',
+            marginTop: '0.25rem'
+          }}>
+            Giá mỗi token khi người khác mua từ smart contract
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2" style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            color: '#374151',
+            marginBottom: '0.5rem'
+          }}>
             Description
           </label>
           <textarea
@@ -470,13 +588,41 @@ export default function CreateToken() {
           )}
         </div>
 
+        {form.totalSupply && form.pricePerToken && (
+          <div className="bg-blue-50 rounded-lg p-4" style={{
+            background: '#eff6ff',
+            borderRadius: '0.5rem',
+            padding: '1rem'
+          }}>
+            <p className="text-sm text-blue-800 font-medium" style={{
+              fontSize: '0.875rem',
+              color: '#1e40af',
+              fontWeight: '500'
+            }}>
+              Token Overview:
+            </p>
+            <div className="text-sm text-blue-700 mt-2 space-y-1" style={{
+              fontSize: '0.875rem',
+              color: '#1d4ed8',
+              marginTop: '0.5rem'
+            }}>
+              <p>Total Supply: {parseInt(form.totalSupply).toLocaleString()} {form.symbol || 'tokens'}</p>
+              <p>Price per Token: {form.pricePerToken} TEST</p>
+              <p>Total Value: {(parseInt(form.totalSupply || '0') * parseFloat(form.pricePerToken || '0')).toFixed(6)} TEST</p>
+              <p className="text-xs text-blue-600 mt-2" style={{ fontSize: '0.75rem', color: '#2563eb', marginTop: '0.5rem' }}>
+                💡 Smart contract sẽ nắm giữ tất cả tokens và tự động bán theo giá đã đặt
+              </p>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={createToken}
-          disabled={loading || !form.name || !form.symbol || !form.totalSupply}
+          disabled={loading || !form.name || !form.symbol || !form.totalSupply || !form.pricePerToken}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 disabled:scale-100"
           style={{
             width: '100%',
-            background: loading || !form.name || !form.symbol || !form.totalSupply 
+            background: loading || !form.name || !form.symbol || !form.totalSupply || !form.pricePerToken
               ? 'linear-gradient(90deg, #9ca3af, #9ca3af)' 
               : 'linear-gradient(90deg, #9333ea, #db2777)',
             color: 'white',
@@ -484,19 +630,19 @@ export default function CreateToken() {
             padding: '1rem 1.5rem',
             borderRadius: '0.5rem',
             border: 'none',
-            cursor: loading || !form.name || !form.symbol || !form.totalSupply ? 'not-allowed' : 'pointer',
+            cursor: loading || !form.name || !form.symbol || !form.totalSupply || !form.pricePerToken ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
             transform: 'scale(1)',
             fontSize: '1rem'
           }}
           onMouseEnter={(e) => {
-            if (!loading && form.name && form.symbol && form.totalSupply) {
+            if (!loading && form.name && form.symbol && form.totalSupply && form.pricePerToken) {
               e.currentTarget.style.background = 'linear-gradient(90deg, #7c3aed, #be185d)';
               e.currentTarget.style.transform = 'scale(1.05)';
             }
           }}
           onMouseLeave={(e) => {
-            if (!loading && form.name && form.symbol && form.totalSupply) {
+            if (!loading && form.name && form.symbol && form.totalSupply && form.pricePerToken) {
               e.currentTarget.style.background = 'linear-gradient(90deg, #9333ea, #db2777)';
               e.currentTarget.style.transform = 'scale(1)';
             }
@@ -574,3 +720,5 @@ export default function CreateToken() {
     </div>
   )
 }
+
+// Remove the static method as it's not needed anymore

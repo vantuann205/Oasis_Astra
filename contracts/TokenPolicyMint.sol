@@ -8,29 +8,106 @@ contract TokenPolicyMint {
     uint256 public totalSupply;
     string public metadataURI;
     address public creator;
+    uint256 public pricePerToken;
+    bool public isForSale;
     
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
     
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event TokenPurchased(address indexed buyer, uint256 amount, uint256 totalPrice);
+    event TokenSold(address indexed seller, uint256 amount, uint256 totalPrice);
+    event PriceUpdated(uint256 newPrice);
+    event SaleStatusChanged(bool isForSale);
     
     constructor(
         string memory _name,
         string memory _symbol,
         uint256 _totalSupply,
         string memory _metadataURI,
-        address _creator
+        address _creator,
+        uint256 _pricePerToken
     ) {
         name = _name;
         symbol = _symbol;
         totalSupply = _totalSupply * 10**decimals;
         metadataURI = _metadataURI;
         creator = _creator;
+        pricePerToken = _pricePerToken;
+        isForSale = true;
         
-        // Mint 100% supply to creator
-        balanceOf[_creator] = totalSupply;
-        emit Transfer(address(0), _creator, totalSupply);
+        balanceOf[address(this)] = totalSupply;
+        emit Transfer(address(0), address(this), totalSupply);
+    }
+    
+    modifier onlyCreator() {
+        require(msg.sender == creator, "Only creator can call this function");
+        _;
+    }
+    
+    function buyTokens(uint256 amount) external payable {
+        require(isForSale, "Token is not for sale");
+        require(amount > 0, "Amount must be greater than 0");
+        require(balanceOf[address(this)] >= amount, "Not enough tokens available");
+        
+        uint256 totalPrice = (amount * pricePerToken) / (10**decimals);
+        require(msg.value >= totalPrice, "Insufficient payment");
+        
+        balanceOf[address(this)] -= amount;
+        balanceOf[msg.sender] += amount;
+        
+        if (msg.value > totalPrice) {
+            payable(msg.sender).transfer(msg.value - totalPrice);
+        }
+        
+        emit Transfer(address(this), msg.sender, amount);
+        emit TokenPurchased(msg.sender, amount, totalPrice);
+    }
+    
+    function setPrice(uint256 _pricePerToken) external onlyCreator {
+        pricePerToken = _pricePerToken;
+        emit PriceUpdated(_pricePerToken);
+    }
+    
+    function setSaleStatus(bool _isForSale) external onlyCreator {
+        isForSale = _isForSale;
+        emit SaleStatusChanged(_isForSale);
+    }
+    
+    function withdrawUnsoldTokens(uint256 amount) external onlyCreator {
+        require(balanceOf[address(this)] >= amount, "Not enough tokens in contract");
+        
+        balanceOf[address(this)] -= amount;
+        balanceOf[creator] += amount;
+        
+        emit Transfer(address(this), creator, amount);
+    }
+    
+    function getAvailableTokens() external view returns (uint256) {
+        return balanceOf[address(this)];
+    }
+    
+    function sellTokens(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        require(balanceOf[msg.sender] >= amount, "Insufficient token balance");
+        require(isForSale, "Token sales are disabled");
+        
+        uint256 totalPrice = (amount * pricePerToken) / (10**decimals);
+        
+        require(address(this).balance >= totalPrice, "Contract has insufficient TEST balance");
+        
+        balanceOf[msg.sender] -= amount;
+        balanceOf[address(this)] += amount;
+        
+        payable(msg.sender).transfer(totalPrice);
+        
+        emit Transfer(msg.sender, address(this), amount);
+        emit TokenSold(msg.sender, amount, totalPrice);
+    }
+    
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
     }
     
     function transfer(address to, uint256 amount) external returns (bool) {

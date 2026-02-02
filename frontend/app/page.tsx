@@ -1,10 +1,56 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useState, useEffect, useRef } from 'react'
 
 const CreateToken = dynamic(() => import('../components/CreateToken'), { ssr: false })
+const TokenMarketplace = dynamic(() => import('../components/TokenMarketplace'), { ssr: false })
 
 export default function Home() {
+  const [connected, setConnected] = useState(false)
+  const [address, setAddress] = useState('')
+  const [createdTokens, setCreatedTokens] = useState<string[]>([])
+  const [showMarketplace, setShowMarketplace] = useState(false)
+  const marketplaceRef = useRef<any>(null)
+
+  const handleTokenCreated = (tokenAddress: string) => {
+    const updatedTokens = [...createdTokens, tokenAddress]
+    setCreatedTokens(updatedTokens)
+    localStorage.setItem('createdTokens', JSON.stringify(updatedTokens))
+    
+    // Show marketplace after first token is created
+    if (!showMarketplace) {
+      setShowMarketplace(true)
+    }
+  }
+
+  // Load saved tokens on mount and check wallet connection
+  useEffect(() => {
+    const saved = localStorage.getItem('createdTokens')
+    if (saved) {
+      const tokens = JSON.parse(saved)
+      setCreatedTokens(tokens)
+    }
+
+    // Check if wallet is already connected
+    const checkConnection = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+          if (accounts.length > 0) {
+            setConnected(true)
+            setAddress(accounts[0])
+            console.log('Auto-detected wallet connection:', accounts[0])
+          }
+        } catch (error) {
+          console.log('No wallet connection detected')
+        }
+      }
+    }
+
+    checkConnection()
+  }, [])
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 py-12" style={{
       minHeight: '100vh',
@@ -33,7 +79,28 @@ export default function Home() {
           </p>
         </div>
 
-        <CreateToken />
+        <CreateToken 
+          onTokenCreated={handleTokenCreated}
+          onConnectionChange={(connected, address) => {
+            setConnected(connected)
+            setAddress(address)
+          }}
+          onTokenCreatedSuccess={() => {
+            // Refresh marketplace when token is created
+            if (marketplaceRef.current?.refreshTokens) {
+              marketplaceRef.current.refreshTokens()
+            }
+          }}
+        />
+
+        {connected && (
+          <TokenMarketplace 
+            ref={marketplaceRef}
+            connected={connected}
+            address={address}
+            createdTokens={createdTokens}
+          />
+        )}
 
         <div className="text-center mt-12" style={{ textAlign: 'center', marginTop: '3rem' }}>
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto" style={{
