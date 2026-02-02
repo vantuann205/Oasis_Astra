@@ -1,101 +1,15 @@
-# Astra.Oasis - Token Creator DApp
+# Oasis Token Creator
 
-A decentralized application for creating and trading ERC20 tokens on Oasis Sapphire Testnet. Built with pump.fun-style trading mechanics.
+Token Creator DApp trên Oasis Sapphire Testnet.
 
-## Features
+## Tính năng
 
-- **Token Creation**: Create custom ERC20 tokens with configurable parameters
-- **Direct Trading**: Buy and sell tokens directly from/to the contract (pump.fun style)
-- **Instant Liquidity**: Contract holds all liquidity for immediate trading
-- **Privacy-Enabled**: Built on Oasis Sapphire for enhanced privacy
-- **No Marketplace Fees**: Direct peer-to-contract trading
+- **Create Token**: Tạo ERC20 token với metadata
+- **MetaMask**: Kết nối MetaMask, auto switch network
+- **IPFS Upload**: Upload image và metadata
+- **Factory Pattern**: Deploy contract riêng cho mỗi token
 
-## Architecture
-
-### Smart Contracts
-
-- **TokenFactory**: Factory contract for deploying new tokens
-- **TokenPolicyMint**: Individual token contract with built-in trading functionality
-
-### Frontend
-
-- **Next.js 14**: Modern React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first styling
-- **Ethers.js v6**: Ethereum interaction library
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- MetaMask or compatible wallet
-- Oasis Sapphire Testnet setup
-
-### Installation
-
-```bash
-# Clone repository
-git clone <repository-url>
-cd Oasis_Astra
-
-# Install dependencies
-npm install
-
-# Install frontend dependencies
-cd frontend && npm install && cd ..
-```
-
-### Deployment
-
-```bash
-# Compile contracts
-npm run compile
-
-# Deploy TokenFactory
-npm run deploy-factory
-
-# Start frontend
-npm run frontend:dev
-```
-
-### Network Configuration
-
-Add Oasis Sapphire Testnet to MetaMask:
-
-- **Network Name**: Oasis Sapphire Testnet
-- **RPC URL**: https://testnet.sapphire.oasis.io
-- **Chain ID**: 23295
-- **Currency Symbol**: TEST
-- **Block Explorer**: https://testnet.explorer.sapphire.oasis.io
-
-## Usage
-
-1. **Connect Wallet**: Connect your MetaMask to Oasis Sapphire Testnet
-2. **Create Token**: Fill in token details and deploy
-3. **Trade Tokens**: Buy/sell tokens directly with instant settlement
-4. **Manage Portfolio**: View your token holdings and trading history
-
-## Contract Addresses
-
-- **TokenFactory**: `0x8baad22C0D3501aD56687881EaCBE836D88313e6`
-
-## Technology Stack
-
-- **Blockchain**: Oasis Sapphire Testnet
-- **Smart Contracts**: Solidity ^0.8.24
-- **Development**: Hardhat
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Web3**: Ethers.js v6, Oasis Sapphire Paratime
-
-## Security Features
-
-- **Privacy-Enabled**: Leverages Oasis Sapphire's confidential smart contracts
-- **Audited Libraries**: Uses OpenZeppelin contracts as base
-- **Input Validation**: Comprehensive parameter validation
-- **Safe Math**: Built-in overflow protection
-
-## Project Structure
+## Cấu trúc dự án
 
 ```
 Oasis_Astra/
@@ -128,36 +42,45 @@ npm run deploy-factory
 
 # Run frontend
 npm run frontend:dev
-
-# Build frontend
-npm run frontend:build
 ```
 
-## Trading Mechanics
+## Smart Contracts
 
-### Buy Tokens
-- Users send TEST tokens to contract
-- Receive tokens at current price
-- Contract holds TEST for liquidity
+### TokenFactory
+- **Address**: `0xD88489fCd77552fbB57A03dE4Be838dD136d1c40`
+- **Network**: Oasis Sapphire Testnet
+- **Function**: Deploy TokenPolicyMint contracts
 
-### Sell Tokens
-- Users send tokens back to contract
-- Receive TEST at current price
-- Instant settlement
+### TokenPolicyMint
+- **Template**: ERC20 token với metadata
+- **Supply**: 100% mint cho creator
+- **Features**: Transfer, approve, allowance
 
-### Price Discovery
-- Fixed price per token set by creator
-- No slippage or AMM mechanics
-- Simple and predictable trading
+## Mạng Sapphire Testnet
 
-## License
+- **RPC URL**: https://testnet.sapphire.oasis.io
+- **Chain ID**: 23295 (0x5aff)
+- **Currency**: TEST
+- **Explorer**: https://testnet.explorer.sapphire.oasis.io
 
-MIT License - see LICENSE file for details
+## Scripts
 
-## Support
+```bash
+npm run compile         # Compile contracts
+npm run deploy-factory  # Deploy TokenFactory
+npm run frontend:dev    # Start frontend
+npm run frontend:build  # Build frontend
+```
 
-For support and questions, please open an issue in the repository.
+## Cách sử dụng
+
+1. Mở http://localhost:3000
+2. Kết nối MetaMask
+3. Nhập thông tin token (Name, Symbol, Supply, Description, Image)
+4. Nhấn "Create Token"
+5. Confirm transaction
+6. Nhận contract address mới
 
 ---
 
-Built with ❤️ for Oasis Ecosystem
+Made with ❤️ for Oasis Ecosystem
