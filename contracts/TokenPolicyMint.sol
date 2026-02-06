@@ -24,14 +24,14 @@ contract TokenPolicyMint {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint256 _totalSupply,
+        uint256 _totalSupply,  //Toi da cap nhạp toltal supply từ người dùng nhé húp
         string memory _metadataURI,
         address _creator,
         uint256 _pricePerToken
     ) {
         name = _name;
         symbol = _symbol;
-        totalSupply = _totalSupply * 10**decimals;
+        totalSupply = _totalSupply;
         metadataURI = _metadataURI;
         creator = _creator;
         pricePerToken = _pricePerToken;
