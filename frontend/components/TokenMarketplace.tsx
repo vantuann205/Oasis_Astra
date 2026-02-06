@@ -25,8 +25,8 @@ interface TokenMarketplaceProps {
 
 const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, address, createdTokens }, ref) => {
   const [availableTokens, setAvailableTokens] = useState<any[]>([])
-  const [tokenInfos, setTokenInfos] = useState<{[address: string]: TokenInfo}>({})
-  const [userBalances, setUserBalances] = useState<{[address: string]: bigint}>({})
+  const [tokenInfos, setTokenInfos] = useState<{ [address: string]: TokenInfo }>({})
+  const [userBalances, setUserBalances] = useState<{ [address: string]: bigint }>({})
   const [loading, setLoading] = useState(false)
 
   // Expose refresh function to parent
@@ -45,22 +45,22 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
   // Load all available tokens from TokenFactory
   const loadAvailableTokens = async () => {
     if (!FACTORY_ADDRESS) return
-    
+
     try {
       const provider = await getProvider()
       const factory = new Contract(FACTORY_ADDRESS, FACTORY_ABI, provider)
-      
+
       // Get all tokens from factory
       const allTokens = await factory.getAllTokens()
       console.log('All tokens from factory:', allTokens)
-      
+
       // Load additional info for each token
       const tokensWithInfo = []
       for (const tokenData of allTokens) {
         console.log('Processing token:', tokenData)
-        
+
         const tokenContract = new Contract(tokenData.tokenAddress, TOKEN_ABI, provider)
-        
+
         try {
           const [isForSale, availableAmount, pricePerToken, contractBalance, userBalance] = await Promise.all([
             tokenContract.isForSale(),
@@ -69,7 +69,7 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
             tokenContract.getContractBalance(),
             connected && address ? tokenContract.balanceOf(address) : Promise.resolve(0n)
           ])
-          
+
           console.log('Token info:', {
             address: tokenData.tokenAddress,
             isForSale,
@@ -78,7 +78,7 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
             contractBalance: contractBalance.toString(),
             userBalance: userBalance.toString()
           })
-          
+
           if (isForSale) {
             tokensWithInfo.push({
               tokenAddress: tokenData.tokenAddress,
@@ -92,12 +92,12 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
               contractBalance,
               userBalance
             })
-            
+
             // Store user balance
             if (connected && address) {
               setUserBalances(prev => ({ ...prev, [tokenData.tokenAddress]: userBalance }))
             }
-            
+
             // Load token info for display
             await getTokenInfo(tokenData.tokenAddress)
           }
@@ -105,7 +105,7 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
           console.error('Error loading token info for', tokenData.tokenAddress, error)
         }
       }
-      
+
       console.log('Tokens with info:', tokensWithInfo)
       setAvailableTokens(tokensWithInfo)
     } catch (error) {
@@ -130,7 +130,7 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
     try {
       const provider = await getProvider()
       const token = new Contract(tokenAddress, TOKEN_ABI, provider)
-      
+
       const [name, symbol, decimals] = await Promise.all([
         token.name(),
         token.symbol(),
@@ -157,29 +157,65 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
       const provider = await getProvider()
       const signer = await provider.getSigner()
       const tokenContract = new Contract(tokenAddress, TOKEN_ABI, signer)
-      
+
       const amountToBuy = parseEther(amount)
       const totalPrice = (amountToBuy * pricePerToken) / parseEther('1')
-      
+
       console.log('Buying token directly...', {
         tokenAddress,
         amount: amountToBuy.toString(),
         pricePerToken: pricePerToken.toString(),
         totalPrice: totalPrice.toString()
       })
-      
+
       const buyTx = await tokenContract.buyTokens(amountToBuy, { value: totalPrice })
       const receipt = await buyTx.wait()
-      
+
       console.log('Token bought successfully:', receipt.hash)
       alert(`✅ Mua ${amount} tokens thành công!\nTx: ${receipt.hash}`)
-      
+
+      // Save purchase to database
+      try {
+        // First, get token_id from contract address
+        const tokenResponse = await fetch(`/api/tokens/by-address?contract_address=${tokenAddress}`)
+        const tokenData = await tokenResponse.json()
+
+        if (tokenData.success && tokenData.token_id) {
+          const response = await fetch('/api/purchases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token_id: tokenData.token_id,
+              buyer_address: address,
+              seller_address: null,
+              quantity: amount,
+              price_per_token: formatEther(pricePerToken),
+              total_price: formatEther(totalPrice),
+              transaction_hash: receipt.hash,
+              status: 'completed',
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            console.log('Purchase saved to database:', data)
+          } else {
+            const error = await response.json()
+            console.warn('Failed to save purchase to database:', error)
+          }
+        } else {
+          console.warn('Could not find token ID for contract:', tokenAddress)
+        }
+      } catch (dbError) {
+        console.warn('Error saving purchase to database:', dbError)
+      }
+
       // Clear input
       const input = document.getElementById(`buy-amount-${tokenAddress}`) as HTMLInputElement
       if (input) input.value = ''
-      
+
       await loadAvailableTokens()
-      
+
     } catch (error: any) {
       console.error('Error buying token:', error)
       if (error.message.includes('insufficient funds')) {
@@ -209,26 +245,26 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
       const provider = await getProvider()
       const signer = await provider.getSigner()
       const tokenContract = new Contract(tokenAddress, TOKEN_ABI, signer)
-      
+
       const amountToSell = parseEther(amount)
-      
+
       console.log('Selling token directly...', {
         tokenAddress,
         amount: amountToSell.toString()
       })
-      
+
       const sellTx = await tokenContract.sellTokens(amountToSell)
       const receipt = await sellTx.wait()
-      
+
       console.log('Token sold successfully:', receipt.hash)
       alert(`✅ Bán ${amount} tokens thành công!\nTx: ${receipt.hash}`)
-      
+
       // Clear input
       const input = document.getElementById(`sell-amount-${tokenAddress}`) as HTMLInputElement
       if (input) input.value = ''
-      
+
       await loadAvailableTokens()
-      
+
     } catch (error: any) {
       console.error('Error selling token:', error)
       if (error.message.includes('Insufficient token balance')) {
@@ -342,7 +378,7 @@ const TokenMarketplace = forwardRef<any, TokenMarketplaceProps>(({ connected, ad
           availableTokens.map((token) => {
             const tokenInfo = tokenInfos[token.tokenAddress]
             const userBalance = userBalances[token.tokenAddress] || 0n
-            
+
             return (
               <div key={token.tokenAddress} className="border rounded-lg p-6" style={{
                 border: '1px solid #e5e7eb',

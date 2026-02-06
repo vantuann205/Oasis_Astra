@@ -58,12 +58,12 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
           if (accounts.length > 0) {
             setConnected(true)
             setAddress(accounts[0])
-            
+
             // Notify parent component
             if (onConnectionChange) {
               onConnectionChange(true, accounts[0])
             }
-            
+
             console.log('Auto-detected wallet connection:', accounts[0])
           }
         } catch (error) {
@@ -124,7 +124,7 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
 
         setAddress(accounts[0])
         setConnected(true)
-        
+
         // Notify parent component
         if (onConnectionChange) {
           onConnectionChange(true, accounts[0])
@@ -146,7 +146,7 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
   const uploadToIPFS = async (data: any): Promise<string> => {
     // Simulate IPFS upload - trong thực tế sẽ upload lên IPFS/Arweave
     console.log('Uploading to IPFS...', data)
-    
+
     // Mock IPFS hash
     const mockHash = 'QmX' + Math.random().toString(36).substring(2, 15)
     return `ipfs://${mockHash}`
@@ -233,22 +233,77 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
         const parsed = factory.interface.parseLog(event)
         const tokenAddress = parsed?.args[0]
         setCreatedToken(tokenAddress)
-        
+
         // Save to localStorage and state
         const updatedTokens = [...createdTokens, tokenAddress]
         setCreatedTokens(updatedTokens)
         localStorage.setItem('createdTokens', JSON.stringify(updatedTokens))
-        
+
+        // Save to database
+        try {
+          const tokenResponse = await fetch('/api/tokens', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: form.name,
+              symbol: form.symbol,
+              totalSupply: form.totalSupply,
+              owner: address,
+              contractAddress: tokenAddress,
+            }),
+          })
+
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json()
+            const tokenId = tokenData.data.id
+            console.log('Token saved to database:', tokenData)
+
+            // Save transaction to database
+            try {
+              const txResponse = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  token_id: tokenId,
+                  from_address: '0x0000000000000000000000000000000000000000', // Contract creation
+                  to_address: address,
+                  amount: form.totalSupply,
+                  transaction_hash: tx.hash,
+                }),
+              })
+
+              if (txResponse.ok) {
+                const txData = await txResponse.json()
+                console.log('Transaction saved to database:', txData)
+              } else {
+                const error = await txResponse.json()
+                console.error('Failed to save transaction:', error)
+              }
+            } catch (txError) {
+              console.error('Error saving transaction:', txError)
+            }
+          } else {
+            const error = await tokenResponse.json()
+            console.error('Failed to save token to database:', error)
+          }
+        } catch (dbError) {
+          console.error('Error saving to database:', dbError)
+        }
+
         // Call callback if provided
         if (onTokenCreated) {
           onTokenCreated(tokenAddress)
         }
-        
+
         // Call success callback to refresh marketplace
         if (onTokenCreatedSuccess) {
           onTokenCreatedSuccess()
         }
-        
+
         alert(`✅ Token created successfully!\nAddress: ${tokenAddress}\nPrice: ${form.pricePerToken} TEST per token\nTokens are now available for purchase!`)
       }
 
@@ -623,7 +678,7 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
           style={{
             width: '100%',
             background: loading || !form.name || !form.symbol || !form.totalSupply || !form.pricePerToken
-              ? 'linear-gradient(90deg, #9ca3af, #9ca3af)' 
+              ? 'linear-gradient(90deg, #9ca3af, #9ca3af)'
               : 'linear-gradient(90deg, #9333ea, #db2777)',
             color: 'white',
             fontWeight: 'bold',
