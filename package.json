@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Token Creator DApp on Oasis Sapphire Testnet",
   "scripts": {
+    "dev": "cd frontend && npm run dev",
     "compile": "npx hardhat compile",
     "deploy-factory": "npx hardhat run scripts/deploy-factory.ts --network sapphire-testnet",
     "frontend:dev": "cd frontend && npm run dev",

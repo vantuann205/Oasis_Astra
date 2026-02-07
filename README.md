@@ -27,6 +27,53 @@ Astra.oasis is a DApp that enables users to create custom ERC20 tokens and trade
 - **Tailwind CSS**: Utility-first styling framework
 - **Ethers.js v6**: Web3 integration library
 
+## Quick Setup for Contributors
+
+If you want to pull this project and run it locally, follow these simple steps:
+
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn package manager
+- Git
+
+### One-Command Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/astra.oasis.git
+cd astra.oasis
+
+# Install all dependencies (root + frontend)
+npm install && cd frontend && npm install && cd ..
+
+# Start the development server
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`
+
+### What `npm run dev` does:
+- Starts the Next.js development server
+- Enables hot reload for instant code changes
+- Serves the frontend application with all features
+
+### Optional: Deploy Your Own Contracts
+
+If you want to deploy your own contracts instead of using the existing ones:
+
+```bash
+# 1. Add your private key to .env file
+echo "PRIVATE_KEY=your_private_key_here" > .env
+
+# 2. Compile contracts
+npm run compile
+
+# 3. Deploy to Oasis Sapphire Testnet
+npm run deploy-factory
+
+# 4. Update the contract address in frontend/abi/factoryAbi.ts
+```
+
 ## Getting Started
 
 ### Prerequisites
@@ -94,7 +141,7 @@ npm run frontend:dev
 ## Smart Contract Details
 
 ### TokenFactory
-- **Address**: `0x8baad22C0D3501aD56687881EaCBE836D88313e6`
+- **Address**: `0x69406A09aDCE3A662166Ad33c5e432204e438A77`
 - **Purpose**: Deploys and manages individual token contracts
 - **Functions**: Create tokens, retrieve token information
 
@@ -174,16 +221,24 @@ astra.oasis/
 ## Development Commands
 
 ```bash
+# Quick start
+npm run dev                 # Start development server (frontend only)
+
 # Smart contract operations
 npm run compile              # Compile contracts
 npm run clean               # Clean build artifacts
 npm run deploy-factory      # Deploy to testnet
 
 # Frontend operations
-npm run frontend:dev        # Start development server
+npm run frontend:dev        # Start development server (alternative)
 npm run frontend:build      # Build for production
 npm run frontend:start      # Start production server
 ```
+
+### Most Common Commands
+- **`npm run dev`** - Start the app for development (most used)
+- **`npm run compile`** - Compile smart contracts
+- **`npm run deploy-factory`** - Deploy contracts to testnet
 
 ## API Reference
 
@@ -205,6 +260,23 @@ npm run frontend:start      # Start production server
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+### For New Contributors
+
+**TL;DR - Just want to run the app?**
+```bash
+git clone <repo-url>
+cd astra.oasis
+npm install && cd frontend && npm install && cd ..
+npm run dev
+```
+
+**Want to contribute?**
+1. The app uses existing deployed contracts, so you can develop frontend features immediately
+2. Smart contracts are in `/contracts` folder
+3. Frontend code is in `/frontend` folder
+4. Run `npm run dev` to start development
+5. The app connects to Oasis Sapphire Testnet automatically
 
 ## License
 

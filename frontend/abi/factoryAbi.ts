@@ -38,4 +38,4 @@ export const TOKEN_ABI = [
 ] as const;
 
 // TokenFactory deployed on Sapphire Testnet
-export const FACTORY_ADDRESS = "0x8baad22C0D3501aD56687881EaCBE836D88313e6";
+export const FACTORY_ADDRESS = "0x69406A09aDCE3A662166Ad33c5e432204e438A77";
