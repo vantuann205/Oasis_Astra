@@ -11,56 +11,57 @@ export default function Home() {
   const [connected, setConnected] = useState(false)
   const [address, setAddress] = useState('')
   const [createdTokens, setCreatedTokens] = useState<string[]>([])
-  const [showMarketplace, setShowMarketplace] = useState(false)
 
+  // TAB STATE
+  const [tab, setTab] = useState<'showMarketplace' | 'create'>('showMarketplace')
+
+  // Khi tạo token xong → quay về market
   const handleTokenCreated = (tokenAddress: string) => {
     const updatedTokens = [...createdTokens, tokenAddress]
+
     setCreatedTokens(updatedTokens)
     localStorage.setItem('createdTokens', JSON.stringify(updatedTokens))
-    
-    if (!showMarketplace) {
-      setShowMarketplace(true)
-    }
+
+    setTab('showMarketplace')
   }
 
+  // Connect wallet
   const handleConnectWallet = async () => {
-    if (typeof window !== 'undefined' && window.ethereum) {
+    if (window.ethereum) {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts',
+        })
+
         if (accounts.length > 0) {
           setConnected(true)
           setAddress(accounts[0])
-          console.log('Wallet connected:', accounts[0])
         }
-      } catch (error) {
+      } catch {
         console.log('Wallet connection failed')
       }
     }
   }
 
-  // Load saved tokens on mount and check wallet connection
+  // Load data
   useEffect(() => {
     const saved = localStorage.getItem('createdTokens')
+
     if (saved) {
       try {
-        const tokens = JSON.parse(saved)
-        setCreatedTokens(tokens)
-      } catch (e) {
-        console.log('Could not load saved tokens')
-      }
+        setCreatedTokens(JSON.parse(saved))
+      } catch {}
     }
 
-    // Check if wallet is already connected
     const checkConnection = async () => {
-      if (typeof window !== 'undefined' && window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' })
-          if (accounts.length > 0) {
-            setConnected(true)
-            setAddress(accounts[0])
-          }
-        } catch (error) {
-          console.log('No wallet connection detected')
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({
+          method: 'eth_accounts',
+        })
+
+        if (accounts.length > 0) {
+          setConnected(true)
+          setAddress(accounts[0])
         }
       }
     }
@@ -70,28 +71,41 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-pump-bg text-pump-text font-sans">
-      <Header 
+
+      {/* HEADER */}
+      <Header
         onConnectWallet={handleConnectWallet}
         walletConnected={connected}
         walletAddress={address}
+
+        // 👇 TRUYỀN TAB
+        activeTab={tab}
+        onChangeTab={setTab}
       />
 
+      {/* CONTENT */}
       <main className="container mx-auto px-4 py-8">
-        <CreateToken 
-          onTokenCreated={handleTokenCreated}
-          onConnectionChange={(connected, address) => {
-            setConnected(connected)
-            setAddress(address)
-          }}
-        />
 
-        {connected && (
-          <TokenMarketplace 
+        {/* MARKET */}
+        {tab === 'showMarketplace' && connected && (
+          <TokenMarketplace
             connected={connected}
             address={address}
             createdTokens={createdTokens}
           />
         )}
+
+        {/* CREATE */}
+        {tab === 'create' && (
+          <CreateToken
+            onTokenCreated={handleTokenCreated}
+            onConnectionChange={(c, a) => {
+              setConnected(c)
+              setAddress(a)
+            }}
+          />
+        )}
+
       </main>
     </div>
   )

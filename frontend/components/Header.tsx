@@ -18,13 +18,18 @@ interface HeaderProps {
   onConnectWallet: () => void;
   walletConnected: boolean;
   walletAddress?: string;
+  activeTab: 'showMarketplace' | 'create';
+  onChangeTab: (tab: 'showMarketplace' | 'create') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   onConnectWallet,
   walletConnected,
   walletAddress,
+  activeTab,
+  onChangeTab,
 }) => {
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
 
@@ -191,10 +196,14 @@ const Header: React.FC<HeaderProps> = ({
             {/* NAV DESKTOP */}
             <nav style={navStyle}>
               <button
+                onClick={() => onChangeTab('showMarketplace')}
                 style={{
                   ...navButtonBaseStyle,
-                  color: '#fff',
-                  backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                  color: activeTab === 'showMarketplace' ? '#fff' : '#d1d5db',
+                  backgroundColor:
+                    activeTab === 'showMarketplace'
+                      ? 'rgba(139, 92, 246, 0.15)'
+                      : 'transparent',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.25)';
@@ -208,22 +217,32 @@ const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
+                onClick={() => onChangeTab('create')}
                 style={{
                   ...navButtonBaseStyle,
-                  color: '#d1d5db',
+                  color: activeTab === 'create' ? '#fff' : '#d1d5db',
+                  backgroundColor:
+                    activeTab === 'create'
+                      ? 'rgba(139, 92, 246, 0.15)'
+                      : 'transparent',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.color = '#fff';
+                  if (activeTab !== 'create') {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.color = '#fff';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#d1d5db';
+                  if (activeTab !== 'create') {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#d1d5db';
+                  }
                 }}
               >
                 <PlusCircle style={{ width: '16px', height: '16px' }} />
                 Create Token
               </button>
+
 
               <button
                 style={{
