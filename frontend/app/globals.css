@@ -11,7 +11,8 @@
 }
 
 body {
-  @apply bg-pump-bg text-pump-text;
+  background-color: #0b0f19;
+  color: #e5e7eb;
   font-family: 'Space Grotesk', sans-serif;
 }
 

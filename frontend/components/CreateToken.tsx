@@ -289,9 +289,9 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
       <div className="max-w-md mx-auto bg-pump-card rounded-xl border border-gray-800 p-8" style={{
         maxWidth: '28rem',
         margin: '0 auto',
-        background: '#1a1f2e',
+        background: 'rgb(11, 15, 25)',
         borderRadius: '0.75rem',
-        border: '1px solid #1f2937',
+        border: '1px solid rgba(139, 92, 246, 0.2)',
         padding: '2rem'
       }}>
         <div className="text-center space-y-6" style={{ textAlign: 'center' }}>
@@ -355,9 +355,9 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
     <div className="max-w-2xl mx-auto bg-pump-card rounded-xl border border-gray-800 p-8" style={{
       maxWidth: '42rem',
       margin: '0 auto',
-      background: '#1a1f2e',
+      background: 'rgb(11, 15, 25)',
       borderRadius: '0.75rem',
-      border: '1px solid #1f2937',
+      border: '1px solid rgba(139, 92, 246, 0.2)',
       padding: '2rem'
     }}>
       <div className="text-center mb-8" style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -388,11 +388,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
 
       {/* Wallet Info */}
       <div className="bg-pump-bg rounded-lg p-4 mb-6 border border-gray-800" style={{
-        background: '#10141f',
+        background: 'rgba(17, 24, 39, 0.5)',
         borderRadius: '0.5rem',
         padding: '1rem',
         marginBottom: '1.5rem',
-        border: '1px solid #1f2937'
+        border: '1px solid rgba(139, 92, 246, 0.2)'
       }}>
         <p className="text-sm text-gray-400" style={{ fontSize: '0.875rem', color: '#9ca3af' }}>Connected Wallet:</p>
         <p className="font-mono text-sm text-gray-300 break-all" style={{
@@ -425,11 +425,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
               style={{
                 width: '100%',
                 padding: '0.75rem 1rem',
-                border: '1px solid #374151',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
                 borderRadius: '0.5rem',
                 outline: 'none',
                 fontSize: '1rem',
-                background: '#10141f',
+                background: 'rgba(31, 41, 55, 0.4)',
                 color: '#ffffff'
               }}
             />
@@ -454,11 +454,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
               style={{
                 width: '100%',
                 padding: '0.75rem 1rem',
-                border: '1px solid #374151',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
                 borderRadius: '0.5rem',
                 outline: 'none',
                 fontSize: '1rem',
-                background: '#10141f',
+                background: 'rgba(31, 41, 55, 0.4)',
                 color: '#ffffff'
               }}
             />
@@ -485,11 +485,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
             style={{
               width: '100%',
               padding: '0.75rem 1rem',
-              border: '1px solid #374151',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
               borderRadius: '0.5rem',
               outline: 'none',
               fontSize: '1rem',
-              background: '#10141f',
+              background: 'rgba(31, 41, 55, 0.4)',
               color: '#ffffff'
             }}
           />
@@ -516,11 +516,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
             style={{
               width: '100%',
               padding: '0.75rem 1rem',
-              border: '1px solid #374151',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
               borderRadius: '0.5rem',
               outline: 'none',
               fontSize: '1rem',
-              background: '#10141f',
+              background: 'rgba(31, 41, 55, 0.4)',
               color: '#ffffff'
             }}
           />
@@ -552,13 +552,13 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
             style={{
               width: '100%',
               padding: '0.75rem 1rem',
-              border: '1px solid #374151',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
               borderRadius: '0.5rem',
               outline: 'none',
               fontSize: '1rem',
               resize: 'vertical',
               minHeight: '80px',
-              background: '#10141f',
+              background: 'rgba(31, 41, 55, 0.4)',
               color: '#ffffff'
             }}
           />
@@ -582,11 +582,11 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
             style={{
               width: '100%',
               padding: '0.75rem 1rem',
-              border: '1px solid #374151',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
               borderRadius: '0.5rem',
               outline: 'none',
               fontSize: '1rem',
-              background: '#10141f',
+              background: 'rgba(31, 41, 55, 0.4)',
               color: '#ffffff'
             }}
           />
