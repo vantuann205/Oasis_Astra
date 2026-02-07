@@ -628,7 +628,7 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
               </p>
             </div>
           </div>
-        )}}
+        )}
 
         <button
           onClick={createToken}
@@ -729,7 +729,7 @@ export default function CreateToken({ onTokenCreated, onConnectionChange, onToke
             {createdToken}
           </a>
         </div>
-      )}}
+      )}
     </div>
   )
 }
